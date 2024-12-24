@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #121214;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            margin: 0;
+        }
+
+        nav ul li {
+            padding: 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        #generate-report {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #generate-report:hover {
+            background-color: #0c0c0c;
+        }
+
+        header {
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+
+        header h2 {
+            font-size: 1.5rem;
+            color: #edecec;
+            background-color: #333;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgb(47, 46, 46);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+            text-align: center;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .card input, .card select, .card button {
+            width: calc(100% - 20px);
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .warning-message {
+            display: none;
+            color: red;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .chart-table-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+
+        .chart-container {
+            width: 80%;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1rem;
+            text-align: left;
+        }
+
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background: #f4f4f9;
+            color: #333;
+            font-weight: 500;
+        }
+
+        table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Profile</a></li>
+                <li><a href="#" id="daily-expense-report">Daily Expense Report</a></li>
+                <li><button id="generate-report">Generate Expert Report</button></li>
+            </ul>
+        </nav>
+        <h1>"Track Your Spending, Control Your Future"</h1>
+        <h2 class="main-heading">Personal Expense Tracker</h2>
+    </header>
+    
+    <!-- Warning Message -->
+    <div class="warning-message" id="warning-message">
+        Low money! Please adjust your spending.
+    </div>
+
+    <div class="container">
+        <!-- Income Section -->
+        <div class="card income-card">
+            <h2>Income</h2>
+            <form id="income-form">
+                <input type="number" id="income-amount" placeholder="Enter your income" required>
+                <button type="submit">Add Income</button>
+            </form>
+        </div>
+
+        <!-- Expense Form Section -->
+        <div class="card expense-card">
+            <h2>Expense Tracker</h2>
+            <form id="expense-form">
+                <input type="text" id="expense-name" placeholder="Expense Name" required>
+                <input type="number" id="expense-amount" placeholder="Amount" required>
+                <input type="date" id="expense-date" required>
+                <select id="expense-category" required>
+                    <option value="food">Food</option>
+                    <option value="transport">Transport</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="others">Others</option>
+                </select>
+                <button type="submit">Add Expense</button>
+            </form>
+        </div>
+
+        <!-- Total Spend and Remaining Income -->
+        <div class="card summary-card">
+            <h2>Summary</h2>
+            <div>Total Spend: $<span id="total-amount">0</span></div>
+            <div>Remaining Income: $<span id="remaining-amount">0</span></div>
+        </div>
+    </div>
+
+    <!-- Warning Message -->
+    <div class="warning-message" id="warning-message">
+        Low money! Please adjust your spending.
+    </div>
+
+    <!-- Chart and Table Container -->
+    <div class="chart-table-container">
+        <!-- Chart Container -->
+        <div class="chart-container">
+            <canvas id="expenseChart"></canvas>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+            <h2>Expense Details</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Expense Name</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-table-body">
+                    <!-- Dynamic rows will be appended here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let initialIncome = 0;
+        const expenseData = [];
+
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Expenses',
+                    data: [],
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        function updateChart() {
+            const labels = expenseData.map(entry => entry.name);
+            const data = expenseData.map(entry => entry.amount);
+
+            expenseChart.data.labels = labels;
+            expenseChart.data.datasets[0].data = data;
+            expenseChart.update();
+        }
+
+        function updateWarningMessage() {
+            const totalSpend = expenseData.reduce((total, entry) => total + entry.amount, 0);
+            const remainingIncome = parseFloat(document.getElementById('remaining-amount').textContent);
+
+            // Show warning message if remaining income is less than 2000 or total spend exceeds initial income
+            if (remainingIncome <= 2000 || totalSpend > initialIncome) {
+                document.getElementById('warning-message').style.display = 'block';
+            } else {
+                document.getElementById('warning-message').style.display = 'none';
+            }
+        }
+
+        document.getElementById('income-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            initialIncome = parseFloat(document.getElementById('income-amount').value);
+            document.getElementById('remaining-amount').textContent = initialIncome.toFixed(2);
+            updateWarningMessage();
+        });
+
+        document.getElementById('expense-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const expenseName = document.getElementById('expense-name').value;
+            const expenseAmount = parseFloat(document.getElementById('expense-amount').value);
+            const expenseDate = document.getElementById('expense-date').value;
+            const expenseCategory = document.getElementById('expense-category').value;
+
+            // Add expense to data array
+            const expense = {
+                name: expenseName,
+                amount: expenseAmount,
+                date: expenseDate,
+                category: expenseCategory
+            };
+            expenseData.push(expense);
+
+            // Update the expense table
+            const tableBody = document.getElementById('expense-table-body');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${expenseDate}</td>
+                <td>${expenseName}</td>
+                <td>${expenseCategory}</td>
+                <td>$${expenseAmount.toFixed(2)}</td>
+            `;
+            tableBody.appendChild(row);
+
+            // Update total spend and remaining income
+            const totalSpend = expenseData.reduce((total, entry) => total + entry.amount, 0);
+            document.getElementById('total-amount').textContent = totalSpend.toFixed(2);
+
+            const remainingIncome = initialIncome - totalSpend;
+            document.getElementById('remaining-amount').textContent = remainingIncome.toFixed(2);
+
+            // Update the chart with the latest expenses
+            updateChart();
+
+            // Check if we need to display a warning message
+            updateWarningMessage();
+        });
+
+        document.getElementById('generate-report').addEventListener('click', () => {
+            // Example of generating a basic report
+            const totalSpend = expenseData.reduce((total, entry) => total + entry.amount, 0);
+            const remainingIncome = parseFloat(document.getElementById('remaining-amount').textContent);
+            alert(`
+                Expert Report:
+                Total Income: $${(remainingIncome + totalSpend).toFixed(2)}
+                Total Spend: $${totalSpend.toFixed(2)}
+                Remaining Income: $${remainingIncome.toFixed(2)}
+            `);
+        });
+
+        document.getElementById('daily-expense-report').addEventListener('click', () => {
+            const chartTableContainer = document.querySelector('.chart-table-container');
+            chartTableContainer.style.display = 'flex';  // Show the chart and table
+        });
+    </script>
+</body>
+</html>
+
